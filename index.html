@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Postman</title>
+</head>
+<body>
+  <h1>Custom Postman</h1>
+  <form id="api-form">
+    <label for="method">Method:</label>
+    <select id="method">
+      <option value="GET">GET</option>
+      <option value="POST">POST</option>
+      <option value="PUT">PUT</option>
+      <option value="DELETE">DELETE</option>
+    </select>
+    <br>
+    <label for="url">URL:</label>
+    <input type="text" id="url" required>
+    <br>
+    <label for="headers">Headers (JSON):</label>
+    <textarea id="headers"></textarea>
+    <br>
+    <label for="data">Data (JSON):</label>
+    <textarea id="data"></textarea>
+    <br>
+    <button type="submit">Send Request</button>
+  </form>
+  <h2>Response</h2>
+  <pre id="response"></pre>
+  <script>
+    document.getElementById('api-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const method = document.getElementById('method').value;
+      const url = document.getElementById('url').value;
+      const headers = JSON.parse(document.getElementById('headers').value || '{}');
+      const data = JSON.parse(document.getElementById('data').value || '{}');
+
+      const responseElement = document.getElementById('response');
+      responseElement.textContent = 'Loading...';
+
+      try {
+        const response = await fetch('http://localhost:3000/request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ method, url, headers, data })
+        });
+        const responseData = await response.json();
+        responseElement.textContent = JSON.stringify(responseData, null, 2);
+      } catch (error) {
+        responseElement.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
