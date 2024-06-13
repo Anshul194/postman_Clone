@@ -4,56 +4,148 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Custom Postman</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #e9ecef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #343a40;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      color: #495057;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+      color: #495057;
+      transition: border-color 0.3s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    h2 {
+      color: #343a40;
+      font-size: 20px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    pre {
+      padding: 15px;
+      background-color: #f8f9fa;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
 </head>
 <body>
-  <h1>Custom Postman</h1>
-  <form id="api-form">
-    <label for="method">Method:</label>
-    <select id="method">
-      <option value="GET">GET</option>
-      <option value="POST">POST</option>
-      <option value="PUT">PUT</option>
-      <option value="DELETE">DELETE</option>
-    </select>
-    <br>
-    <label for="url">URL:</label>
-    <input type="text" id="url" required>
-    <br>
-    <label for="headers">Headers (JSON):</label>
-    <textarea id="headers"></textarea>
-    <br>
-    <label for="data">Data (JSON):</label>
-    <textarea id="data"></textarea>
-    <br>
-    <button type="submit">Send Request</button>
-  </form>
-  <h2>Response</h2>
-  <pre id="response"></pre>
+  <div class="container">
+    <h1>Custom Postman</h1>
+    <form id="api-form">
+      <label for="method">Method:</label>
+      <select id="method">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="DELETE">DELETE</option>
+      </select>
+      <label for="url">URL:</label>
+      <input type="text" id="url" required placeholder="https://example.com/api">
+      <label for="token">Token:</label>
+      <input type="text" id="token" placeholder="Bearer token">
+      <label for="headers">Headers (JSON):</label>
+      <textarea id="headers" placeholder='{"Content-Type": "application/json"}'></textarea>
+      <label for="data">Data (JSON):</label>
+      <textarea id="data" placeholder='{"key": "value"}'></textarea>
+      <button type="submit">Send Request</button>
+    </form>
+    <h2>Response</h2>
+    <pre id="response"></pre>
+  </div>
   <script>
     document.getElementById('api-form').addEventListener('submit', async function(event) {
       event.preventDefault();
+      
       const method = document.getElementById('method').value;
       const url = document.getElementById('url').value;
+      const token = document.getElementById('token').value.trim();
       const headers = JSON.parse(document.getElementById('headers').value || '{}');
       const data = JSON.parse(document.getElementById('data').value || '{}');
-
+    
       const responseElement = document.getElementById('response');
       responseElement.textContent = 'Loading...';
-
+    
       try {
-        const response = await fetch('http://localhost:3000/request', {
-          method: 'POST',
+        const requestOptions = {
+          method: 'POST', // Always POST to the server endpoint
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...headers
           },
-          body: JSON.stringify({ method, url, headers, data })
-        });
+          body: JSON.stringify({ method, url, headers, data, token }) // Send the necessary data in the body
+        };
+    
+        if (token) {
+          requestOptions.headers['Authorization'] = `Bearer ${token}`;
+        }
+    
+        const response = await fetch('http://localhost:3000/request', requestOptions);
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
         const responseData = await response.json();
         responseElement.textContent = JSON.stringify(responseData, null, 2);
       } catch (error) {
         responseElement.textContent = 'Error: ' + error.message;
       }
     });
-  </script>
+    </script>
+    
 </body>
 </html>
