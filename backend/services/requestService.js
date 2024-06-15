@@ -1,36 +1,48 @@
-exports.makeRequest = async (method, url, headers, data,token) => {
+exports.makeRequest = async (method, url, headers = {}, data = null, token = null) => {
   try {
-    const fetch = (await import('node-fetch')).default;
+    // Node.js built-in fetch
+    const fetch = globalThis.fetch;
 
     const options = {
       method: method,
-      headers: headers
+      headers: { ...headers }  // Copy headers to avoid mutation
     };
-console.log(options)
+
+    // Add Authorization header if token is provided
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      options.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    if (data && !headers['Content-Type']) {
-      headers['Content-Type'] = 'application/json';
+    // Set Content-Type header if data is provided and it is not already set
+    if (data && !options.headers['Content-Type']) {
+      options.headers['Content-Type'] = 'application/json';
     }
 
+    // Add body to the request if method is not GET or HEAD
     if (method !== 'GET' && method !== 'HEAD' && data) {
       options.body = JSON.stringify(data);
     }
-    console.log(data)
+
+    // Log the request details for debugging
+    console.log('Request Options:', options);
+    console.log('Request Data:', data);
 
     const response = await fetch(url, options);
-    console.log(response)
 
+    // Log the raw response for debugging
+    console.log('Raw Response:', response);
+
+    // Extract response data
     const responseData = await response.json();
     const responseHeaders = {};
 
-    // Copy headers to a plain object
+    // Convert response headers to a plain object
     response.headers.forEach((value, key) => {
       responseHeaders[key] = value;
     });
-    console.log(responseData)
+
+    // Log the parsed response data for debugging
+    console.log('Response Data:', responseData);
 
     return {
       status: response.status,
@@ -38,7 +50,8 @@ console.log(options)
       data: responseData
     };
   } catch (error) {
-    console.log(error.message)
+    // Log the error message for debugging
+    console.log('Error:', error.message);
     throw error;
   }
 };

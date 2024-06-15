@@ -121,12 +121,12 @@
     
       try {
         const requestOptions = {
-          method: 'POST', // Always POST to the server endpoint
+          method: 'POST', 
           headers: {
             'Content-Type': 'application/json',
             ...headers
           },
-          body: JSON.stringify({ method, url, headers, data, token }) // Send the necessary data in the body
+          body: JSON.stringify({ method, url, headers, data, token }) 
         };
     
         if (token) {
